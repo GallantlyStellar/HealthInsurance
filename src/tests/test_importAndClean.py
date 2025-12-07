@@ -41,4 +41,5 @@ def test_importDF():
             "float64",
         ]
     ), "Dtypes have changed"
-    assert df.shape == (1338, 7), "DF shape has changed"
+    assert df.shape == (1337, 7), "DF shape has changed"
+    assert not df.duplicated().any(), "Duplicates exist"

@@ -60,4 +60,7 @@ def importDF(path: str = "../assets/data/raw/insurance.csv") -> pd.DataFrame:
         .astype("uint8")
     )
 
+    # Indices 195 and 581 are identical; improbable these are different individuals
+    df = df.drop_duplicates()
+
     return df
