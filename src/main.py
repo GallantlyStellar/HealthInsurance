@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
+from eda import ageChargeScatterplots
 from importAndClean import importDF
 from visualize import bivariate, univariate
 
@@ -25,3 +26,6 @@ univariate(df, 3, 3)
 bivariate(df, "charges", 2, 3)
 # plt.show()
 plt.close("all")
+
+ageChargeScatterplots(df)
+plt.show()
