@@ -13,8 +13,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-# read in data
-df = pd.read_csv("../data/raw/data.csv", dtype={"age": "uint8"})
+from importAndClean import importDF
 
 # Make plot fonts bigger
 plt.rcParams.update({"font.size": 20})
+
+# read in data
+df = importDF(path="../assets/data/raw/insurance.csv")
