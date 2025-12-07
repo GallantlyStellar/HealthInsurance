@@ -31,8 +31,8 @@ def univariate(df: pd.DataFrame, n_rows: int = 4, n_cols: int = 4) -> Figure:
 
     assert n_rows * n_cols >= len(df.columns), "Not enough plots for all cols"
 
-    PLOT_COUNT = len(df.columns)
-    n_drop = (n_rows * n_cols) - PLOT_COUNT
+    plot_count = len(df.columns)
+    n_drop = (n_rows * n_cols) - plot_count
 
     fig, axs = plt.subplots(nrows=n_rows, ncols=n_cols)
     axs = axs.reshape(-1)  # flatten to iterate
@@ -41,11 +41,11 @@ def univariate(df: pd.DataFrame, n_rows: int = 4, n_cols: int = 4) -> Figure:
 
     fig.supylabel("Occurences", x=-0.0005)
     fig.supxlabel("Feature Value", y=-0.003)
-    cmap = plt.get_cmap("tab20", PLOT_COUNT)
-    color = [cmap(i) for i in range(0, PLOT_COUNT)]
+    cmap = plt.get_cmap("tab20", plot_count)
+    color = [cmap(i) for i in range(0, plot_count)]
     np.random.seed(6396)
     np.random.shuffle(color)
-    for i in range(0, PLOT_COUNT):
+    for i in range(0, plot_count):
         ax = axs[i]
         ax.set_title(df.columns[i])
         ax.spines[["right", "top"]].set_visible(False)
@@ -86,7 +86,7 @@ def univariate(df: pd.DataFrame, n_rows: int = 4, n_cols: int = 4) -> Figure:
 
 def bivariate(df: pd.DataFrame, target: str, n_rows: int = 4, n_cols: int = 4) -> Figure:
     """
-    Create univariate visualizations of a df.
+    Create bivariate visualizations of a df.
 
     Args:
         df (DataFrame): A Pandas DataFrame to visualize.
@@ -102,85 +102,113 @@ def bivariate(df: pd.DataFrame, target: str, n_rows: int = 4, n_cols: int = 4) -
     import seaborn as sns
 
     assert n_rows * n_cols >= (len(df.columns) - 1), "Not enough plots for all cols"
-    PLOT_COUNT = len(df.columns) - 1  # don't plot target vs itself
-    n_drop = (n_rows * n_cols) - PLOT_COUNT
+    plot_count = len(df.columns) - 1  # don't plot target vs itself
+    n_drop = (n_rows * n_cols) - plot_count
+    target_nunique = df[target].nunique()
 
     fig, axs = plt.subplots(nrows=n_rows, ncols=n_cols)
     axs = axs.reshape(-1)  # flatten to iterate
     # remove 2 unneeded plots
     _ = [axs[i].remove() for i in range(-n_drop, 0)]
 
-    fig.supylabel("Occurences", x=-0.0005)
-    fig.supxlabel("Feature Value", y=-0.003)
-    for i in range(0, PLOT_COUNT):
+    for i in range(0, plot_count):
         ax = axs[i]
         ax.set_title(df.columns[i])
         ax.spines[["right", "top"]].set_visible(False)
         col = df.iloc[:, i]
         colUniqueVals = col.drop_duplicates().sort_values()
-        if col.nunique() > 10:  # continuous values
-            sns.histplot(
-                x=col,
-                hue=df[target],
-                multiple="stack",
-                element="step",
-                palette="pastel",
-                ax=ax,
-                edgecolor=None,
-            )
-            # ax.hist(
-            #     [col[df[target] == level] for level in df[target].unique()],
-            #     fill=False,
-            #     histtype="step",  # elim vertical lines between bars
-            #     stacked=True,  # to compare distributions
-            #     edgecolor=color,
-            #     label=df[target].unique(),
-            # )
-        # binary values
-        elif colUniqueVals.dropna().isin([0, 1]).all():
-            col = col.astype(str).replace(
-                {
-                    "0": "False",
-                    "1": "True",
-                    "<NA>": "NA",
-                    "nan": "NA",
-                }
-            )
-            if "NA" in col.values:
-                sns.countplot(
+        # if target is continuous (regressions),
+        # use stacked hists or scatterplots
+        if target_nunique > 10:
+            # continuous values
+            if col.nunique() > 10:
+                sns.scatterplot(
                     x=col,
-                    hue=df[target],
+                    y=df[target],
+                    color=sns.color_palette("pastel")[0],
                     ax=ax,
-                    palette="pastel",
-                    order=["False", "True", "NA"],
+                    edgecolor=None,
                 )
+                # discrete values (no special case for binary, target is cont)
             else:
-                sns.countplot(
+                sns.histplot(
+                    x=df[target],
+                    hue=col,
+                    multiple="stack",
+                    element="step",
+                    palette="pastel",
+                    ax=ax,
+                    edgecolor=None,
+                )
+        # if target is categorical (classifications),
+        # use hist if continuous, barplot of occurences if discrete
+        else:
+            # continuous values
+            if col.nunique() > 10:
+                sns.histplot(
                     x=col,
                     hue=df[target],
-                    ax=ax,
+                    multiple="stack",
+                    element="step",
                     palette="pastel",
-                    order=["False", "True"],
+                    ax=ax,
+                    edgecolor=None,
                 )
-        # discrete, non-binary values
-        else:
-            col = col.astype(str).replace(
-                {
-                    "<NA>": "NA",
-                    "nan": "NA",
-                }
-            )
-            sns.countplot(x=col, hue=df[target], ax=ax, palette="pastel")
-            labels = col.value_counts().sort_index().index.astype(str)
-            ax.set_xticks(range(len(labels)))  # suppress warning
-            ax.set_xticklabels([label[:5] + "." if len(label) > 5 else label for label in labels])
-            del labels
+            # binary values
+            elif colUniqueVals.dropna().isin([0, 1]).all():
+                col = col.astype(str).replace(
+                    {
+                        "0": "False",
+                        "1": "True",
+                        "<NA>": "NA",
+                        "nan": "NA",
+                    }
+                )
+                if "NA" in col.values:
+                    sns.countplot(
+                        x=col,
+                        hue=df[target],
+                        ax=ax,
+                        palette="pastel",
+                        order=["False", "True", "NA"],
+                    )
+                else:
+                    sns.countplot(
+                        x=col,
+                        hue=df[target],
+                        ax=ax,
+                        palette="pastel",
+                        order=["False", "True"],
+                    )
+            # discrete, non-binary values
+            else:
+                col = col.astype(str).replace(
+                    {
+                        "<NA>": "NA",
+                        "nan": "NA",
+                    }
+                )
+                sns.countplot(x=col, hue=df[target], ax=ax, palette="pastel")
+                labels = col.value_counts().sort_index().index.astype(str)
+                ax.set_xticks(range(len(labels)))  # suppress warning
+                ax.set_xticklabels(
+                    [label[:5] + "." if len(label) > 5 else label for label in labels]
+                )
+                del labels
         # remove local legends and axis labels to have only one on figure
-        ax.get_legend().remove()
-        ax.set_xlabel("")
-        ax.set_ylabel("")
+        # for discrete targets. Keep legends for continuous targets.
+        if target_nunique < 10:
+            ax.get_legend().remove()
+            ax.set_xlabel("")
+            ax.set_ylabel("")
         del col, colUniqueVals
-    # get legend from last plot
-    handles, labels = ax.get_legend_handles_labels()
-    fig.legend(handles, labels, title=target, ncol=df[target].nunique(), loc="upper center")
+
+    if target_nunique < 10:
+        # get legend from last plot and use if target is categorical
+        handles, labels = ax.get_legend_handles_labels()
+        fig.legend(handles, labels, title=target, ncol=df[target].nunique(), loc="upper center")
+
+        # Set X and Y labels for all plots
+        fig.supylabel("Occurences", x=-0.0005)
+        fig.supxlabel("Feature Value", y=-0.003)
     return fig
