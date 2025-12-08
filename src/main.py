@@ -46,10 +46,9 @@ lr = linearModel(X_train, y_train)
 root_mean_squared_error(y_test, lr.predict(X_test))
 r2_score(y_test, lr.predict(X_test))
 
-pca = pca(encoded)
+pca = pca(encoded.drop("charges", axis=1))
 # pca.explained_variance_ratio_
 pcs = pca.transform(encoded.drop("charges", axis=1))
-# TODO: add line
 
 fig = px.scatter_3d(
     x=pcs[:, 0],

@@ -38,5 +38,5 @@ def linearModel(X_train: pd.DataFrame, y_train: pd.Series) -> LinearRegression:
 
 def pca(df: pd.DataFrame) -> PCA:
     """Standardize the data and perform principal component analysis."""
-    scaled = StandardScaler().fit_transform(df.drop("charges", axis=1))
+    scaled = StandardScaler().fit_transform(df)
     return PCA().fit(scaled)
