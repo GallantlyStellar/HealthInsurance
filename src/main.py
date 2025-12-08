@@ -20,7 +20,7 @@ from sklearn.metrics import r2_score, root_mean_squared_error
 from eda import ageChargeScatterplots
 from importAndClean import importDF
 from linearModel import linearModel, oneHot, pca, splitData
-from visualize import bivariate, univariate
+from visualize import bivariate, corr, univariate
 
 # Make plot fonts bigger
 plt.rcParams.update({"font.size": 20})
@@ -37,6 +37,10 @@ ageChargeScatterplots(df)
 plt.close("all")
 
 encoded = oneHot(df)
+
+corr(encoded)
+plt.show()
+
 X_train, X_test, y_train, y_test = splitData(encoded)
 lr = linearModel(X_train, y_train)
 root_mean_squared_error(y_test, lr.predict(X_test))

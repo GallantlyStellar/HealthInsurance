@@ -212,3 +212,46 @@ def bivariate(df: pd.DataFrame, target: str, n_rows: int = 4, n_cols: int = 4) -
         fig.supylabel("Occurences", x=-0.0005)
         fig.supxlabel("Feature Value", y=-0.003)
     return fig
+
+
+def corr(df: pd.DataFrame) -> Figure:
+    """
+    Create a heatmap of correlation coefficients.
+
+    Args:
+        df (DataFrame): A Pandas DataFrame to visualize.
+
+    Returns:
+        fig (matplotlib Figure): Use plt.show() to access figure.
+
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import seaborn as sns
+
+    fig, ax = plt.subplots()
+    ax = sns.heatmap(
+        df.corr(),
+        # triangle upper of true values to eliminate duplicated info
+        mask=np.invert(np.triu(np.ones_like(df.corr(), dtype=bool))),
+        # remove invert and use tril to eliminate autocorr diagonal
+        # mask=np.tril(np.ones_like(df.corr(), dtype=bool)),
+        annot=True,
+        fmt="0.1f",  # 1 decimal on annotations
+        cmap="coolwarm",
+        vmin=-1,
+        vmax=1,
+        linewidths=3,  # space between items
+        square=True,
+        xticklabels=True,  # show every label
+        yticklabels=True,
+        cbar_kws={"location": "left", "pad": 0.01},
+    )
+    ax.collections[0].colorbar.set_label("Correlation Coefficient", rotation=90, va="bottom")
+    # Put x labels above
+    ax.xaxis.tick_top()
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=-30, ha="right")
+    # Put y labels on right
+    ax.yaxis.tick_right()
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0, ha="left")
+    return fig
