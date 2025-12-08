@@ -12,7 +12,7 @@ GallantlyStellar
 
 import pandas as pd
 
-from linearModel import linearModel, oneHot, pca, splitData
+from linearModel import linearModelSK, linearModelSM, oneHot, pca, splitData
 
 df = pd.DataFrame(
     {
@@ -36,10 +36,21 @@ def test_splitData():
     assert round(X_test.shape[0] * 0.8) == (y_test.shape[0]), "Test is not 20% of train"
 
 
-def test_linearModel():
-    lr = linearModel(df[["age", "children"]], df["charges"])
-    assert int(lr.coef_[0]) == 50, "Linear model coefficients do not match expected values"
-    assert int(lr.coef_[1]) == 50, "Linear model coefficients do not match expected values"
+def test_linearModelSK():
+    lr = linearModelSK(df[["age", "children"]], df["charges"])
+    assert abs(lr.coef_[0] - 50) < 0.001, "sklearn model coefficients do not match expected values"
+    assert abs(lr.coef_[1] - 50) < 0.001, "sklearn model coefficients do not match expected values"
+
+
+def test_linearModelSM():
+    lr, preds = linearModelSM(df[["age", "children"]], df["charges"], df[["age", "children"]])
+    assert (
+        abs(lr.params.iloc[1] - 50) < 0.001
+    ), "SM model coefficients do not match expected values"
+    assert (
+        abs(lr.params.iloc[2] - 50) < 0.001
+    ), "SM model coefficients do not match expected values"
+    assert preds.sum(), "Predictions are not numeric"
 
 
 def test_pca():
