@@ -19,7 +19,7 @@ from sklearn.metrics import r2_score, root_mean_squared_error
 
 from eda import ageChargeScatterplots
 from importAndClean import importDF
-from linearModel import linearModel, oneHot, pca, splitData
+from linearModel import linearModelSM, oneHot, pca, splitData
 from visualize import bivariate, corr, univariate
 
 # Make plot fonts bigger
@@ -41,13 +41,21 @@ encoded = oneHot(df)
 corr(encoded)
 plt.show()
 
+
+# Split training and testing data
 X_train, X_test, y_train, y_test = splitData(encoded)
-lr = linearModel(X_train, y_train)
-root_mean_squared_error(y_test, lr.predict(X_test))
-r2_score(y_test, lr.predict(X_test))
+
+# Fit the model
+lr, preds = linearModelSM(X_train, y_train, X_test)
+
+# Evaluate the model
+root_mean_squared_error(y_test, preds)
+r2_score(y_test, preds)
+lr.summary2()
+
 
 pca = pca(encoded.drop("charges", axis=1))
-# pca.explained_variance_ratio_
+pca.explained_variance_ratio_
 pcs = pca.transform(encoded.drop("charges", axis=1))
 
 fig = px.scatter_3d(
