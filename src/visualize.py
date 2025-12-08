@@ -47,7 +47,7 @@ def univariate(df: pd.DataFrame, n_rows: int = 4, n_cols: int = 4) -> Figure:
     np.random.shuffle(color)
     for i in range(0, plot_count):
         ax = axs[i]
-        ax.set_title(df.columns[i])
+        ax.set_title(df.columns[i].capitalize())
         ax.spines[["right", "top"]].set_visible(False)
         col = df.iloc[:, i]
         colUniqueVals = col.drop_duplicates().sort_values()
@@ -78,7 +78,9 @@ def univariate(df: pd.DataFrame, n_rows: int = 4, n_cols: int = 4) -> Figure:
             labels = val_counts.index.astype(str)
             ax.bar(labels, val_counts.values, color=color[i])
             ax.set_xticks(range(len(labels)))  # suppress warning
-            ax.set_xticklabels([label[:5] + "." if len(label) > 5 else label for label in labels])
+            ax.set_xticklabels(
+                [label[:5].capitalize() + "." if len(label) > 5 else label for label in labels]
+            )
             del val_counts, labels
         del col, colUniqueVals
     return fig
@@ -113,7 +115,7 @@ def bivariate(df: pd.DataFrame, target: str, n_rows: int = 4, n_cols: int = 4) -
 
     for i in range(0, plot_count):
         ax = axs[i]
-        ax.set_title(df.columns[i])
+        ax.set_title(df.columns[i].capitalize())
         ax.spines[["right", "top"]].set_visible(False)
         col = df.iloc[:, i]
         colUniqueVals = col.drop_duplicates().sort_values()
@@ -129,6 +131,8 @@ def bivariate(df: pd.DataFrame, target: str, n_rows: int = 4, n_cols: int = 4) -
                     ax=ax,
                     edgecolor=None,
                 )
+                ax.set_xlabel(ax.get_xlabel().capitalize())
+                ax.set_ylabel(ax.get_ylabel().capitalize())
                 # discrete values (no special case for binary, target is cont)
             else:
                 sns.histplot(
@@ -139,6 +143,12 @@ def bivariate(df: pd.DataFrame, target: str, n_rows: int = 4, n_cols: int = 4) -
                     palette="pastel",
                     ax=ax,
                     edgecolor=None,
+                )
+                ax.set_xlabel(ax.get_xlabel().capitalize())
+                ax.legend(
+                    ax.get_legend().legend_handles,
+                    [text.get_text().capitalize() for text in ax.get_legend().texts],
+                    title=col.name.capitalize(),
                 )
         # if target is categorical (classifications),
         # use hist if continuous, barplot of occurences if discrete
@@ -192,7 +202,10 @@ def bivariate(df: pd.DataFrame, target: str, n_rows: int = 4, n_cols: int = 4) -
                 labels = col.value_counts().sort_index().index.astype(str)
                 ax.set_xticks(range(len(labels)))  # suppress warning
                 ax.set_xticklabels(
-                    [label[:5] + "." if len(label) > 5 else label for label in labels]
+                    [
+                        label[:5].capitalize() + "." if len(label) > 5 else label.capitalize()
+                        for label in labels
+                    ]
                 )
                 del labels
         # remove local legends and axis labels to have only one on figure
@@ -206,7 +219,14 @@ def bivariate(df: pd.DataFrame, target: str, n_rows: int = 4, n_cols: int = 4) -
     if target_nunique < 10:
         # get legend from last plot and use if target is categorical
         handles, labels = ax.get_legend_handles_labels()
-        fig.legend(handles, labels, title=target, ncol=df[target].nunique(), loc="upper center")
+        labels = [label.capitalize() for label in labels]
+        fig.legend(
+            handles,
+            labels,
+            title=target.capitalize(),
+            ncol=df[target].nunique(),
+            loc="upper center",
+        )
 
         # Set X and Y labels for all plots
         fig.supylabel("Occurences", x=-0.0005)
@@ -250,8 +270,12 @@ def corr(df: pd.DataFrame) -> Figure:
     ax.collections[0].colorbar.set_label("Correlation Coefficient", rotation=90, va="bottom")
     # Put x labels above
     ax.xaxis.tick_top()
-    ax.set_xticklabels(ax.get_xticklabels(), rotation=-30, ha="right")
+    ax.set_xticklabels(
+        [label.get_text().capitalize() for label in ax.get_xticklabels()], rotation=-30, ha="right"
+    )
     # Put y labels on right
     ax.yaxis.tick_right()
-    ax.set_yticklabels(ax.get_yticklabels(), rotation=0, ha="left")
+    ax.set_yticklabels(
+        [label.get_text().capitalize() for label in ax.get_xticklabels()], rotation=0, ha="left"
+    )
     return fig
