@@ -14,11 +14,12 @@ from sklearn.decomposition import PCA
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from statsmodels.api import OLS, add_constant
 
 
 def oneHot(df: pd.DataFrame) -> pd.DataFrame:
     """One-hot encode labels, dropping one instance to prevent multicolinearity"""
-    return pd.get_dummies(df, drop_first=True)
+    return pd.get_dummies(df, drop_first=True, dtype="uint8")  # Statsmodels doesn't fit with bools
 
 
 def splitData(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
@@ -31,8 +32,9 @@ def splitData(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, 
     )
 
 
-def linearModel(X_train: pd.DataFrame, y_train: pd.Series) -> LinearRegression:
-    """Fit multiple linear regression model to the encoded, split training data."""
+def linearModelSK(X_train: pd.DataFrame, y_train: pd.Series) -> LinearRegression:
+    """Fit multiple linear regression model with sklearn to the encoded,
+    split training data."""
     return LinearRegression().fit(X_train, y_train)
 
 
@@ -40,3 +42,14 @@ def pca(df: pd.DataFrame) -> PCA:
     """Standardize the data and perform principal component analysis."""
     scaled = StandardScaler().fit_transform(df)
     return PCA().fit(scaled)
+
+
+def linearModelSM(
+    X_train: pd.DataFrame, y_train: pd.Series, X_test: pd.DataFrame
+) -> tuple[LinearRegression, pd.Series]:
+    """Fit multiple linear regression model with StatsModels to the encoded,
+    split training data."""
+    X_train_sm = add_constant(X_train)
+    lr = OLS(y_train, X_train_sm).fit()
+    preds = lr.predict(add_constant(X_test))
+    return lr, preds
