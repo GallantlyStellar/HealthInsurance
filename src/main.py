@@ -90,7 +90,7 @@ fig = px.scatter_3d(
     title="Dimensionalty-Reduced Features vs Charges",
 )
 fig = fig.update_traces(marker=dict(size=6))
-fig.write_html("../report/figures/pcs.html")
+fig.write_html("../figures/pcs.html")
 
 # Evaluate the model
 print(f"Test set RMSE: {root_mean_squared_error(y_test, preds)}")
